@@ -242,22 +242,15 @@ class StorageDevice:
             cmd += [abs_source, abs_dest]
 
             # Start process
-            process = subprocess.Popen(
-                cmd,
-                #shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-
-            # Allow process to run
-            if not quiet:
-                for line in process.stdout:
-                    process.poll()
-                    l = line.decode().rstrip('\n')
-                    # print all lines that are NOT simply listing "some/folder/"
-                    if not(FOLDER_REGEX.search(l) and not DELETE_REGEX.search(l)):
-                        print(l)
-            process.wait()
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+                # Allow process to run
+                if not quiet:
+                    for line in process.stdout:
+                        process.poll()
+                        l = line.decode().rstrip('\n')
+                        # print all lines that are NOT simply listing "some/folder/"
+                        if not(FOLDER_REGEX.search(l) and not DELETE_REGEX.search(l)):
+                            print(l)
 
 
 # --- SD Card
