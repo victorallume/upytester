@@ -571,7 +571,9 @@ class PyBoard(object):
             self.comport.close()
             time.sleep(2.5)  # wait reasonable time for USB to re-connect to OS
         else:
-            self.comport.write(b'\x03\x04')  # [Ctrl+C] + [Ctrl+D]
+            self.comport.write(b'\x03')  # [Ctrl+C]
+            time.sleep(0.5)  # delay seems to make this more reliable
+            self.comport.write(b'\x04')  # [Ctrl+D]
             self.comport.close()
         self._comport = None
 
