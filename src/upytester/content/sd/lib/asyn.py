@@ -36,6 +36,7 @@ try:
 except ImportError:
     import asyncio
 
+import pyb
 
 async def _g():
     pass
@@ -470,3 +471,29 @@ class Gatherable():
 
     def __call__(self):
         return self.arguments
+
+
+class TimedLock(asyncio.Lock):
+    """
+    :param delay_ms: How long it sleeps between tries (unit: ms)
+    :param timeout: When it quits awaiting for lock to be released before it can be acquired again (unit: ms)
+    """
+
+    def __init__(self, delay_ms: int=0, timeout: int=None):
+        super().__init__()
+        self._delay_ms = delay_ms
+        self._timeout = timeout
+
+    async def acquire(self):
+        if self._timeout is not None:
+            start = pyb.millis()
+            while pyb.elapsed_millis(start) < self._timeout:
+                if self.locked():
+                    await asyncio.sleep_ms(self._delay_ms)
+                else:
+                    await super().acquire()
+                    break
+            else:  # timeout reached
+                raise RuntimeError("lock acquisition timed out")
+        else:
+            await super().acquire()
